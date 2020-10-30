@@ -1,0 +1,45 @@
+<odoo>
+  <data>
+    <!-- explicit list view definition -->
+    <record model="ir.ui.view" id="madkting.sale_list">
+      <field name="name">sale.order.tree</field>
+      <field name="model">sale.order</field>
+      <field name="type">tree</field>
+      <field name="arch" type="xml">
+        <tree string="Yuju orders" create="false">
+          <field name="name"/>
+          <field name="channel"/>
+          <field name="channel_order_reference"/>
+          <field name="state"/>
+          <field name="invoice_status"/>
+          <field name="order_progress"/>
+          <field name="payment_status"/>
+        </tree>
+      </field>
+    </record>
+    <!-- actions opening views on models -->
+    <act_window id="madkting.action_window"
+                name="Synchronized Orders"
+                res_model="sale.order"
+                view_id="madkting.sale_list"
+                view_mode="tree,form"
+                domain="[('channel_order_id', '!=', False)]"
+    />
+    <!-- Top menu item -->
+    <menuitem name="Yuju" id="madkting.menu_root"/>
+    <menuitem name="Sales" id="madkting.menu_sale" parent="madkting.menu_root"/>
+    <menuitem name="Synchronized Orders" id="madkting.menu_sale_list" parent="madkting.menu_sale" action="madkting.action_window"/>
+
+    <record id="view_order_form_inherit" model="ir.ui.view">
+      <field name="name">Sale Order Custom</field>
+      <field name="model">sale.order</field>
+      <field name="inherit_id" ref="sale.view_order_form"/>
+      <field name="arch" type="xml">
+        <field name="client_order_ref" position="after">
+          <field name="channel" readonly="1"/>
+          <field name="channel_order_reference" readonly="1" />
+        </field>
+      </field>
+    </record>
+  </data>
+</odoo>
