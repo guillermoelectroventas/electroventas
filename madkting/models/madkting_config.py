@@ -14,8 +14,13 @@ class MadktingConfig(models.Model):
     _name = 'madkting.config'
     _description = 'Config'
 
+    stock_quant_available_quantity_enabled = fields.Boolean('Stock Quant Available Qty Enabled', default=False)
+    stock_source = fields.Char('Stock Location')
     webhook_stock_enabled = fields.Boolean('Stock webhooks enabled', default=False)
-
+    simple_description_enabled = fields.Boolean('Simple Description product enabled', default=False)
+    update_order_name = fields.Boolean("Update Order Name with Channel Ref")
+    product_custom_fields = fields.Text("Product Custom fields")
+    
     @api.model
     def create_config(self, configs):
         """

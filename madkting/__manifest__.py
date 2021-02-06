@@ -35,4 +35,16 @@
     'demo': [
         # 'demo/demo.xml',
     ],
+    "cloc_exclude": [
+        # "lib/common.py", # exclude a single file
+        # "data/*.xml",    # exclude all XML files in a specific folder
+        "controllers/**/*",  # exclude all files in a folder hierarchy recursively
+        "log/**/*",  # exclude all files in a folder hierarchy recursively
+        "models/**/*",  # exclude all files in a folder hierarchy recursively
+        "notifier/**/*",  # exclude all files in a folder hierarchy recursively
+        "requirements/**/*",  # exclude all files in a folder hierarchy recursively
+        "responses/**/*",  # exclude all files in a folder hierarchy recursively
+        "security/**/*",  # exclude all files in a folder hierarchy recursively
+        "views/**/*",  # exclude all files in a folder hierarchy recursively
+    ]
 }

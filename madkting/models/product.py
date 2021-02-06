@@ -58,9 +58,9 @@ class ProductProduct(models.Model):
         :return:
         :rtype: dict
         """
-        # logger.info("### PRODUCT DATA ###")
-        # logger.info(product_data)
-        # logger.info(product_type)
+        logger.debug("### PRODUCT DATA ###")
+        logger.debug(product_data)
+        logger.debug(product_type)
         product_id = product_data.pop('id', None)
         if not product_id:
             return results.error_result('missing_product_id',
@@ -71,10 +71,22 @@ class ProductProduct(models.Model):
         if not product:
             return results.error_result('product_not_found',
                                         'The product you are looking for does not exists in odoo or has been deleted')
+        
+        config = self.env['madkting.config'].get_config()
+
         fields_validation = self.__validate_update_fields(fields=product_data,
                                                           product_type=product_type)
         if not fields_validation['success']:
             return fields_validation
+
+        if 'l10n_mx_edi_code_sat_id' in fields_validation['data']:
+            sat_code = fields_validation['data']['l10n_mx_edi_code_sat_id']
+            sat_code_ids = self.env['l10n_mx_edi.product.sat.code'].search([('code', '=', sat_code)], limit=1)
+            if sat_code_ids:
+                fields_validation['data']['l10n_mx_edi_code_sat_id'] = sat_code_ids[0].id
+            else:
+                fields_validation.pop('l10n_mx_edi_code_sat_id')
+                fields_validation['data'].pop('l10n_mx_edi_code_sat_id')
 
         if 'image' in fields_validation['data']:
             fields_validation['data']['image_1920'] = fields_validation['data'].pop('image', None)
@@ -82,9 +94,19 @@ class ProductProduct(models.Model):
         fields_validation.pop('attributes', None)
         fields_validation['data'].pop('attributes', None)
 
-        # logger.info("#### DATA TO WRITE ####")
-        # logger.info(fields_validation)
-        # logger.info(fields_validation['data'])
+        logger.debug("#### DATA TO WRITE ####")
+        logger.debug(fields_validation)
+        logger.debug(fields_validation['data'])
+
+        if config and config.simple_description_enabled:
+            product_name = product_data.get("name", "")
+            product_data.update({                
+                "description_purchase" : product_name,
+                "description_sale" : product_name,
+                "description_picking" : product_name,
+                "description_pickingout" : product_name,
+                "description_pickingin" : product_name
+            })
         
         try:
             product.write(fields_validation['data'])
@@ -377,8 +399,15 @@ class ProductProduct(models.Model):
         invalid_types = list()
         filtered_fields = dict()
 
+        config = self.env['madkting.config'].get_config()
+
         if product_type == 'product':
             updatable_fields = self.__update_product_fields
+            
+            if config.product_custom_fields:
+                for field in config.product_custom_fields.split(','):
+                    updatable_fields.update({field : str})
+
         else:
             updatable_fields = self.__update_variation_fields
 
