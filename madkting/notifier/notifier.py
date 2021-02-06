@@ -24,13 +24,32 @@ def send_stock_webhook(env, product_id, hook_id=None):
             ('hook_type', '=', 'stock'),
             ('active', '=', True)
         ])
+
+    config = env['madkting.config'].sudo().get_config()
+
+    if config and config.stock_quant_available_quantity_enabled:
+        ubicaciones_stock = {}
+        if config.stock_source:            
+            for branch_id in config.stock_source.split(','):
+                location = env['stock.location'].search([('id', '=', int(branch_id))], limit=1)
+                qty_in_branch = env['stock.quant']._get_available_quantity(product, location)
+                ubicaciones_stock.update({branch_id : qty_in_branch})
+        else:
+            for branch_id, stock in product.get_stock_by_location().items():
+                location = env['stock.location'].search([('id', '=', int(branch_id))], limit=1)
+                qty_in_branch = env['stock.quant']._get_available_quantity(product, location)
+                ubicaciones_stock.update({branch_id : qty_in_branch})
+    else:
+        ubicaciones_stock = product.get_stock_by_location()
+        
     webhook_body = {
         'product_id': product.id,
         'default_code': product.default_code,
         'id_product_madkting': product.id_product_madkting,
         'event': 'stock_update',
         'qty_available': product.qty_available,
-        'quantities': product.get_stock_by_location()
+        'quantities' : ubicaciones_stock
+        # 'quantities': product.get_stock_by_location()
     }
     data = json.dumps(webhook_body)
     headers = {'Content-Type': 'application/json'}
@@ -48,10 +67,10 @@ def send_webhook(url, data, headers):
     :param headers:
     :return:
     """
-    logger.info("#### SEND WEBHOOK ####")
-    logger.info(data)
-    logger.info(url)
-    logger.info(headers)
+    logger.debug("#### SEND WEBHOOK ####")
+    logger.debug(data)
+    logger.debug(url)
+    logger.debug(headers)
     try:
         response = requests.post(url, data=data, headers=headers)
     except Exception as ex:

@@ -65,6 +65,19 @@ class ProductTemplate(models.Model):
         :return:
         :rtype: dict
         """
+
+        config = self.env['madkting.config'].get_config()
+
+        if config and config.simple_description_enabled:
+            product_name = product_data.get("name", "")
+            product_data.update({                
+                "description_purchase" : product_name,
+                "description_sale" : product_name,
+                "description_picking" : product_name,
+                "description_pickingout" : product_name,
+                "description_pickingin" : product_name
+            })
+
         variation_attributes = product_data.pop('variation_attributes', None)
         variations = product_data.pop('variations', [])
         has_variations = True if variation_attributes else False
@@ -159,13 +172,8 @@ class ProductTemplate(models.Model):
                                         description='Product couldn\'t be created because '
                                                     'of the following exception: {}'.format(ex))
         
-        # logger.info("###################################")
-        # logger.info("Validar Atributo antes de asignarlo")
-
         for product_variant in new_template.product_variant_ids:
             data = product_variant.get_data()
-            # logger.info(data)
-            # logger.info(data.get('attributes'))
 
             variation_data = None
             
